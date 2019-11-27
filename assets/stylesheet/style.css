@@ -171,7 +171,7 @@ a:visited {
 ul li a {
   color: #919191;
   font-weight: bold;
-  font-size: 0.85em;
+  font-size: 1rem;
 }
 
 ul li a:hover {
@@ -309,7 +309,11 @@ main {
   color: gold;
 }
 
-/* Tooltip */
+.clear {
+  margin-top: 10px;
+  color: palevioletred;
+  font-size: 0.7rem;
+}
 
 /* Primary Footer */
 
