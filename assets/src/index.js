@@ -22,14 +22,13 @@ function showMovies(movies) {
   moviesContainer.innerHTML = movies
     .map((movie, index) => {
       let year = "";
-      const postetUrl = `https://image.tmdb.org/t/p/w200${movie.poster_path}`;
       if (movie.release_date) {
         [year] = movie.release_date.split("-");
       }
 
       return `<li class="movie-wrapper" data-id=${index}>
       <div class=movie_cover>
-        <img  src="${postetUrl}">
+        <img  src="${movie.poster_path}">
       </div>
       <div class="data-wrap">
         <h3 class="movie-name">${movie.original_title}</h3>
