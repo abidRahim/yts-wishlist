@@ -1,3 +1,6 @@
+/**************************************************
+ * Type declarations
+ *************************************************/
 interface Movie {
   id: number;
   video: boolean;
@@ -14,9 +17,14 @@ interface Movie {
   poster_path: string;
   popularity: number;
 }
-
 type MovieList = Movie[];
+type PromiseList = {
+  results: Movie[];
+};
 
+/**************************************************
+ * Variable declarations
+ *************************************************/
 let allMoviesList: MovieList = [];
 let watchList: number[] =
   JSON.parse(localStorage.getItem("watchListItems")) || [];
@@ -29,19 +37,38 @@ const searchMovies: HTMLInputElement = document.querySelector(
 const watchListBtn: HTMLUListElement = document.querySelector(".watch-list");
 const homeBtn: HTMLElement = document.querySelector(".home");
 
+/**************************************************
+ * Fetches Data from local fetch.jsom
+ **************************************************/
 async function fetchData() {
   try {
-    const { results } = await fetch("./assets/src/fetch.json").then(blob =>
-      blob.json()
-    );
-    allMoviesList = results;
-    showMovies(results);
+    const movieList = await new Promise<PromiseList>((resolve, reject) => {
+      fetch("./assets/src/fetch.json").then(blob => {
+        if (blob.ok) {
+          return resolve(blob.json());
+        } else {
+          return reject(new Error("Error"));
+        }
+      });
+    });
+    /*
+     * Simpler async/await implementation would have been:
+     * const { results } = await fetch("./assets/src/fetch.json").then(blob => blob.json());
+     */
+    allMoviesList = movieList.results;
+    showMovies(allMoviesList);
   } catch (error) {
-    throw error;
+    throw new Error(error);
   }
 }
 
+/**************************************************
+ * Displays movies passed as parameter
+ * @param movies Array of Movies to displayed
+ **************************************************/
 function showMovies(movies: MovieList): void {
+  console.log(movies);
+
   moviesContainer.innerHTML = movies
     .map((movie: Movie, index: number): string => {
       let year: string = "";
@@ -69,6 +96,10 @@ function showMovies(movies: MovieList): void {
     .join("");
 }
 
+/**************************************************
+ * To add selected movies to the list
+ * @param event : Mouse trigger event
+ **************************************************/
 function addWatchList(event: MouseEvent) {
   const target = event.target as HTMLElement;
 
@@ -82,6 +113,9 @@ function addWatchList(event: MouseEvent) {
   localStorage.setItem("watchListItems", JSON.stringify(watchList));
 }
 
+/**************************************************
+ * Adds a Clear List button
+ **************************************************/
 function addClearList(): void {
   watchListBtn.insertAdjacentHTML(
     "afterend",
@@ -95,6 +129,9 @@ function addClearList(): void {
   });
 }
 
+/**************************************************
+ * Displays Added movies to the watchList
+ **************************************************/
 function showWatchList(): void {
   const favMovieArray: MovieList = watchList.map(id => {
     // Causes error if tripple equals is used
@@ -111,6 +148,10 @@ function showWatchList(): void {
   addClearList();
 }
 
+/**************************************************
+ * Allows to search from list of fetched movies
+ * @param event Keyboard triggered event
+ **************************************************/
 function search(event: KeyboardEvent): void {
   /**
    * Can also be written as :

@@ -7,25 +7,49 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
+/**************************************************
+ * Variable declarations
+ *************************************************/
 let allMoviesList = [];
 let watchList = JSON.parse(localStorage.getItem("watchListItems")) || [];
 const moviesContainer = document.querySelector(".movies__container ul");
 const searchMovies = document.querySelector("[name=site-search]");
 const watchListBtn = document.querySelector(".watch-list");
 const homeBtn = document.querySelector(".home");
+/**************************************************
+ * Fetches Data from local fetch.jsom
+ **************************************************/
 function fetchData() {
     return __awaiter(this, void 0, void 0, function* () {
         try {
-            const { results } = yield fetch("./assets/src/fetch.json").then(blob => blob.json());
-            allMoviesList = results;
-            showMovies(results);
+            const movieList = yield new Promise((resolve, reject) => {
+                fetch("./assets/src/fetch.json").then(blob => {
+                    if (blob.ok) {
+                        return resolve(blob.json());
+                    }
+                    else {
+                        return reject(new Error("Error"));
+                    }
+                });
+            });
+            /*
+             * Simpler async/await implementation would have been:
+             * const { results } = await fetch("./assets/src/fetch.json").then(blob => blob.json());
+             */
+            allMoviesList = movieList.results;
+            showMovies(allMoviesList);
         }
         catch (error) {
-            throw error;
+            throw new Error(error);
         }
     });
 }
+/**************************************************
+ * Displays movies passed as parameter
+ * @param movies Array of Movies to displayed
+ **************************************************/
 function showMovies(movies) {
+    console.log(movies);
     moviesContainer.innerHTML = movies
         .map((movie, index) => {
         let year = "";
@@ -51,6 +75,10 @@ function showMovies(movies) {
     })
         .join("");
 }
+/**************************************************
+ * To add selected movies to the list
+ * @param event : Mouse trigger event
+ **************************************************/
 function addWatchList(event) {
     const target = event.target;
     if (!target.classList.contains("fa-plus-circle"))
@@ -62,6 +90,9 @@ function addWatchList(event) {
     }
     localStorage.setItem("watchListItems", JSON.stringify(watchList));
 }
+/**************************************************
+ * Adds a Clear List button
+ **************************************************/
 function addClearList() {
     watchListBtn.insertAdjacentHTML("afterend", '<li><a class="clear" href="#">Clear List</a></li>');
     const clearBtn = document.querySelector(".clear");
@@ -70,6 +101,9 @@ function addClearList() {
         showMovies([]);
     });
 }
+/**************************************************
+ * Displays Added movies to the watchList
+ **************************************************/
 function showWatchList() {
     const favMovieArray = watchList.map(id => {
         // Causes error if tripple equals is used
@@ -81,6 +115,10 @@ function showWatchList() {
     showMovies(favMovieArray);
     addClearList();
 }
+/**************************************************
+ * Allows to search from list of fetched movies
+ * @param event Keyboard triggered event
+ **************************************************/
 function search(event) {
     /**
      * Can also be written as :
