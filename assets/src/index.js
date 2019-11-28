@@ -1,11 +1,16 @@
+/**************************************************
+ * Variable declarations
+ *************************************************/
 let allMoviesList = [];
 let watchList = JSON.parse(localStorage.getItem("watchListItems")) || [];
-const movieContainer = document.querySelector(".movie-container ul");
 const moviesContainer = document.querySelector(".movies__container ul");
 const searchMovies = document.querySelector("[name=site-search]");
 const watchListBtn = document.querySelector(".watch-list");
 const homeBtn = document.querySelector(".home");
 
+/**************************************************
+ * Fetches Data from local fetch.jsom
+ **************************************************/
 async function fetchData() {
   try {
     const { results } = await fetch("./assets/src/fetch.json").then(blob =>
@@ -14,10 +19,14 @@ async function fetchData() {
     allMoviesList = results;
     showMovies(results);
   } catch (error) {
-    throw error;
+    throw new Error(error);
   }
 }
 
+/**************************************************
+ * Displays movies passed as parameter
+ * @param movies: Array of Movies to displayed
+ **************************************************/
 function showMovies(movies) {
   moviesContainer.innerHTML = movies
     .map((movie, index) => {
@@ -46,46 +55,63 @@ function showMovies(movies) {
     .join("");
 }
 
-function addWatchList(e) {
-  if (!e.target.classList.contains("fa-plus-circle")) return;
-  const id = e.target.dataset.id;
+/**************************************************
+ * To add selected movies to the list
+ * @param event: Mouse trigger event
+ **************************************************/
+function addWatchList(event) {
+  if (!event.target.classList.contains("fa-plus-circle")) return;
+  const id = event.target.dataset.id;
   if (!watchList.includes(id)) {
     watchList.push(id);
   }
   localStorage.setItem("watchListItems", JSON.stringify(watchList));
 }
 
+/**************************************************
+ * Adds a Clear List button
+ **************************************************/
 function addClearList() {
   watchListBtn.insertAdjacentHTML(
     "afterend",
     '<li><a class="clear" href="#">Clear List</a></li>'
   );
   const clearBtn = document.querySelector(".clear");
+
   clearBtn.addEventListener("click", () => {
     window.localStorage.clear();
     showMovies([]);
   });
 }
 
+/**************************************************
+ * Displays Added movies to the watchList
+ **************************************************/
 function showWatchList() {
-  watchListBtn.classList.add("hilight");
-  homeBtn.classList.remove("hilight");
   const favMovieArray = watchList.map(id => {
-    // Causes error if tripple equals is used
     const movieIndex = allMoviesList.findIndex(
-      movie => movie.id.toString() === id
+      movie => movie.id == id   // Causes error if tripple equals is used
     );
     return allMoviesList[movieIndex];
   });
+
+  watchListBtn.classList.add("hilight");
+  homeBtn.classList.remove("hilight");
+
   showMovies(favMovieArray);
   addClearList();
 }
 
-function search() {
-  let searchText = this.value.toLowerCase();
+/**************************************************
+ * Allows to search from list of fetched movies
+ * @param event: Keyboard triggered event
+ **************************************************/
+function search(event) {
+  let searchText = event.target.value.toLowerCase();
   const searchedMovie = allMoviesList.filter(movie =>
     movie.original_title.toLowerCase().includes(searchText)
   );
+
   showMovies(searchedMovie);
 }
 
