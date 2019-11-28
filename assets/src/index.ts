@@ -1,10 +1,33 @@
-let allMoviesList = [];
-let watchList = JSON.parse(localStorage.getItem("watchListItems")) || [];
-const movieContainer = document.querySelector(".movie-container ul");
-const moviesContainer = document.querySelector(".movies__container ul");
-const searchMovies = document.querySelector("[name=site-search]");
-const watchListBtn = document.querySelector(".watch-list");
-const homeBtn = document.querySelector(".home");
+interface Movie {
+  id: number;
+  video: boolean;
+  vote_count: number;
+  vote_average: number;
+  title: string;
+  release_date: string;
+  original_language: string;
+  original_title: string;
+  genre_ids: number[];
+  backdrop_path: string;
+  adult: boolean;
+  overview: string;
+  poster_path: string;
+  popularity: number;
+}
+
+type MovieList = Movie[];
+
+let allMoviesList: MovieList = [];
+let watchList: number[] =
+  JSON.parse(localStorage.getItem("watchListItems")) || [];
+const moviesContainer: HTMLElement = document.querySelector(
+  ".movies__container ul"
+) as HTMLUListElement;
+const searchMovies: HTMLInputElement = document.querySelector(
+  "[name=site-search]"
+);
+const watchListBtn: HTMLUListElement = document.querySelector(".watch-list");
+const homeBtn: HTMLElement = document.querySelector(".home");
 
 async function fetchData() {
   try {
@@ -18,18 +41,17 @@ async function fetchData() {
   }
 }
 
-function showMovies(movies) {
+function showMovies(movies: MovieList): void {
   moviesContainer.innerHTML = movies
-    .map((movie, index) => {
-      let year = "";
-      const postetUrl = `https://image.tmdb.org/t/p/w200${movie.poster_path}`;
+    .map((movie: Movie, index: number): string => {
+      let year: string = "";
       if (movie.release_date) {
         [year] = movie.release_date.split("-");
       }
 
       return `<li class="movie-wrapper" data-id=${index}>
       <div class=movie_cover>
-        <img  src="${postetUrl}">
+        <img  src="${movie.poster_path}">
       </div>
       <div class="data-wrap">
         <h3 class="movie-name">${movie.original_title}</h3>
@@ -47,50 +69,67 @@ function showMovies(movies) {
     .join("");
 }
 
-function addWatchList(e) {
-  if (!e.target.classList.contains("fa-plus-circle")) return;
-  const id = e.target.dataset.id;
-  if (!watchList.includes(id)) {
-    watchList.push(id);
+function addWatchList(event: MouseEvent) {
+  const target = event.target as HTMLElement;
+
+  if (!target.classList.contains("fa-plus-circle")) return;
+  const id = target.dataset.id;
+  const intId: number = Number(id);
+  if (!watchList.includes(intId)) {
+    watchList.push(intId);
   }
+
   localStorage.setItem("watchListItems", JSON.stringify(watchList));
 }
 
-function addClearList() {
+function addClearList(): void {
   watchListBtn.insertAdjacentHTML(
     "afterend",
     '<li><a class="clear" href="#">Clear List</a></li>'
   );
-  const clearBtn = document.querySelector(".clear");
+  const clearBtn: HTMLElement = document.querySelector(".clear");
+
   clearBtn.addEventListener("click", () => {
     window.localStorage.clear();
     showMovies([]);
   });
 }
 
-function showWatchList() {
-  watchListBtn.classList.add("hilight");
-  homeBtn.classList.remove("hilight");
-  const favMovieArray = watchList.map(id => {
+function showWatchList(): void {
+  const favMovieArray: MovieList = watchList.map(id => {
     // Causes error if tripple equals is used
-    const movieIndex = allMoviesList.findIndex(
-      movie => movie.id.toString() === id
+    const movieIndex: number = allMoviesList.findIndex(
+      (movie: Movie) => movie.id === id
     );
     return allMoviesList[movieIndex];
   });
+
+  watchListBtn.classList.add("hilight");
+  homeBtn.classList.remove("hilight");
+
   showMovies(favMovieArray);
   addClearList();
 }
 
-function search() {
-  let searchText = this.value.toLowerCase();
-  const searchedMovie = allMoviesList.filter(movie =>
+function search(event: KeyboardEvent): void {
+  /**
+   * Can also be written as :
+   * const searchText = (event.target as HTMLInputElement).value.toLowerCase();
+   *
+   * or,
+   * const searchTaget = event.target as HTMLInputElement;
+   * const searchText = searchTaget.value.toLowerCase();
+   */
+  const searchText: string = (<HTMLInputElement>(
+    event.target
+  )).value.toLowerCase();
+  const searchedMovie: MovieList = allMoviesList.filter((movie: Movie) =>
     movie.original_title.toLowerCase().includes(searchText)
   );
   showMovies(searchedMovie);
 }
 
-function homePageActive() {
+function homePageActive(): void {
   homeBtn.classList.add("hilight");
   watchListBtn.classList.remove("hilight");
 }
